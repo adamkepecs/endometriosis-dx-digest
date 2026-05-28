@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
@@ -92,24 +90,23 @@ def _access_token(config: dict[str, Any]) -> str:
 
 
 def _docs_request(method: str, url: str, token: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
-    data = json.dumps(body).encode("utf-8") if body is not None else None
-    request = urllib.request.Request(
+    try:
+        import requests  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("requests is required for Google Docs output") from exc
+    response = requests.request(
+        method,
         url,
-        data=data,
+        json=body,
         headers={
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
             "User-Agent": "endometriosis-dx-digest/0.1",
         },
-        method=method,
+        timeout=30,
     )
-    try:
-        with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310 - Google Docs API.
-            raw = response.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Google Docs HTTP {exc.code}: {body[:1000]}") from exc
-    return json.loads(raw) if raw else {}
+    if response.status_code >= 400:
+        raise RuntimeError(f"Google Docs HTTP {response.status_code}: {response.text[:1000]}")
+    return response.json() if response.text else {}
 
 
 def _create_document_tab(config: dict[str, Any], doc_id: str, token: str, title: str) -> str:

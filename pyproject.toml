@@ -12,7 +12,8 @@ license = { text = "Private" }
 authors = [{ name = "Endometriosis DX Digest" }]
 dependencies = [
   "google-auth>=2.29.0",
-  "PyYAML>=6.0.1"
+  "PyYAML>=6.0.1",
+  "requests>=2.31.0"
 ]
 
 [project.optional-dependencies]
