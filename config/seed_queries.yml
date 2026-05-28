@@ -1,0 +1,43 @@
+{
+  "broad": [
+    "endometriosis diagnostic test",
+    "endometriosis diagnostic biomarker",
+    "endometriosis noninvasive diagnosis",
+    "endometriosis imaging diagnostic"
+  ],
+  "saliva_miRNA": [
+    "Ziwig Endotest",
+    "Endotest",
+    "salivary microRNA endometriosis test",
+    "109-miRNA saliva signature",
+    "ENDOmiRNA"
+  ],
+  "blood_multiomic": [
+    "HerAnova",
+    "HerResolve",
+    "blood-based endometriosis assay",
+    "multi-omic endometriosis blood test",
+    "PromarkerEndo",
+    "Proteomics International"
+  ],
+  "menstrual_blood": [
+    "menstrual blood endometriosis diagnostic",
+    "Endometrics",
+    "HMGB1 menstrual blood endometriosis"
+  ],
+  "molecular_imaging": [
+    "99mTc-maraciclatide",
+    "maraciclatide SPECT-CT endometriosis",
+    "Serac Healthcare",
+    "superficial peritoneal endometriosis imaging"
+  ],
+  "ai_imaging": [
+    "AI ultrasound endometriosis diagnosis",
+    "MRI radiomics endometriosis diagnosis"
+  ],
+  "emerging": [
+    "cfDNA methylation endometriosis diagnosis",
+    "microbiome endometriosis diagnostic signature",
+    "CA-125 endometriosis diagnostic panel"
+  ]
+}

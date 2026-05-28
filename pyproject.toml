@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "endometriosis-dx-digest"
+version = "0.1.0"
+description = "Weekly automated surveillance digest for endometriosis diagnostic tests."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Private" }
+authors = [{ name = "Endometriosis DX Digest" }]
+dependencies = [
+  "google-auth>=2.29.0",
+  "PyYAML>=6.0.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0"
+]
+
+[project.scripts]
+endodigest = "endodigest.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"

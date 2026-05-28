@@ -1,0 +1,22 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Local digest render artifacts can be large/noisy. GitHub Actions uploads them.
+data/runs/*_digest.md
+data/runs/*_digest.html
+data/runs/*_metadata.json
+data/runs/*_email.html
+data/runs/*_email.txt
+!data/runs/.gitkeep

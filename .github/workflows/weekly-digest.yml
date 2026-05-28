@@ -1,0 +1,99 @@
+name: Weekly Endometriosis Diagnostics Digest
+
+on:
+  schedule:
+    - cron: "0 5 * * FRI"
+      timezone: "America/Chicago"
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: "Days to look back"
+        required: false
+        default: "10"
+      backfill_days:
+        description: "Backfill days; leave blank for normal weekly run"
+        required: false
+        default: ""
+      dry_run:
+        description: "Do not send email or update Google Doc"
+        required: false
+        default: "false"
+      send_email:
+        description: "Send email"
+        required: false
+        default: "true"
+      update_google_doc:
+        description: "Update Google Doc"
+        required: false
+        default: "true"
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Validate config
+        run: python -m endodigest.cli validate-config
+
+      - name: Test
+        run: pytest
+
+      - name: Run digest
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          DIGEST_TO: ${{ secrets.DIGEST_TO }}
+          DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_DOC_ID: ${{ secrets.GOOGLE_DOC_ID }}
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
+          SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+        run: |
+          ARGS="--lookback-days ${{ github.event.inputs.lookback_days || '10' }}"
+          if [ -n "${{ github.event.inputs.backfill_days }}" ]; then
+            ARGS="$ARGS --backfill-days ${{ github.event.inputs.backfill_days }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.send_email }}" = "false" ]; then
+            ARGS="$ARGS --no-send-email"
+          fi
+          if [ "${{ github.event.inputs.update_google_doc }}" = "false" ]; then
+            ARGS="$ARGS --no-update-google-doc"
+          fi
+          python -m endodigest.cli run $ARGS
+
+      - name: Upload run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-run
+          path: data/runs/
+
+      - name: Commit updated state
+        run: |
+          git config user.name "endometriosis-dx-digest-bot"
+          git config user.email "endometriosis-dx-digest-bot@users.noreply.github.com"
+          git add data/seen.json data/runs/.gitkeep
+          for file in data/runs/*_metadata.json; do
+            [ -e "$file" ] && git add -f "$file"
+          done
+          git diff --cached --quiet || git commit -m "Update digest state"
+          git push

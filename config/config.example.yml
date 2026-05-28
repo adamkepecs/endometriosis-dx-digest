@@ -1,0 +1,119 @@
+{
+  "schedule": {
+    "timezone": "America/Chicago",
+    "weekday": "Friday",
+    "time": "05:00"
+  },
+  "date_windows": {
+    "default_lookback_days": 10,
+    "default_backfill_days": 730
+  },
+  "llm": {
+    "model": "gpt-4.1-mini",
+    "synthesis_model": "gpt-4.1-mini",
+    "classification_batch_size": 1,
+    "request_timeout_seconds": 60
+  },
+  "inclusion": {
+    "relevance_threshold": 55,
+    "always_include_source_types": ["clinical_trial", "regulatory"]
+  },
+  "sources": {
+    "pubmed": {
+      "enabled": true,
+      "max_results": 50,
+      "rate_limit_seconds": 0.34,
+      "queries": [
+        "(endometriosis[Title/Abstract]) AND (diagnos*[Title/Abstract] OR biomarker*[Title/Abstract] OR assay[Title/Abstract] OR test[Title/Abstract] OR imaging[Title/Abstract] OR ultrasound[Title/Abstract] OR MRI[Title/Abstract] OR radiotracer[Title/Abstract] OR saliva[Title/Abstract] OR blood[Title/Abstract] OR urine[Title/Abstract] OR menstrual[Title/Abstract] OR microRNA[Title/Abstract] OR miRNA[Title/Abstract])"
+      ]
+    },
+    "clinicaltrials": {
+      "enabled": true,
+      "max_results": 50,
+      "rate_limit_seconds": 0.25,
+      "queries": [
+        "endometriosis diagnosis",
+        "endometriosis biomarker",
+        "endometriosis saliva",
+        "endometriosis blood test",
+        "endometriosis menstrual blood",
+        "endometriosis miRNA",
+        "endometriosis imaging",
+        "maraciclatide",
+        "Endotest",
+        "HerResolve",
+        "PromarkerEndo"
+      ]
+    },
+    "web_search": {
+      "enabled": true,
+      "max_results": 8,
+      "openai_web_search_enabled": true,
+      "openai_web_search_tool_type": "web_search_preview",
+      "optional_providers": {
+        "google_cse": true,
+        "serpapi": true,
+        "tavily": true,
+        "brave": true
+      },
+      "queries": [
+        "endometriosis diagnostic test biomarker launch",
+        "endometriosis diagnosis saliva miRNA test",
+        "endometriosis blood biomarker assay",
+        "endometriosis menstrual blood diagnostic",
+        "endometriosis imaging AI ultrasound MRI radiomics"
+      ]
+    },
+    "fda_press": {
+      "enabled": true,
+      "max_results": 8,
+      "queries": [
+        "site:fda.gov endometriosis diagnostic test",
+        "site:fda.gov endometriosis biomarker diagnostic",
+        "endometriosis diagnostic FDA clearance",
+        "endometriosis diagnostic test launch PRNewswire",
+        "endometriosis diagnostic BusinessWire",
+        "endometriosis diagnostic GlobeNewswire",
+        "Ziwig Endotest endometriosis diagnostic",
+        "HerResolve endometriosis diagnostic",
+        "PromarkerEndo endometriosis diagnostic",
+        "99mTc-maraciclatide FDA Fast Track endometriosis"
+      ]
+    }
+  },
+  "search_providers": {
+    "google_cse": {
+      "required": false,
+      "max_results": 10
+    },
+    "serpapi": {
+      "required": false,
+      "max_results": 10
+    },
+    "tavily": {
+      "required": false,
+      "max_results": 10
+    },
+    "brave": {
+      "required": false,
+      "max_results": 10
+    }
+  },
+  "outputs": {
+    "google_doc": true,
+    "email": true,
+    "local_markdown": true,
+    "google_doc_append_mode": "top",
+    "subject_prefix": "Endometriosis diagnostics weekly digest"
+  },
+  "digest": {
+    "recipient_label": "Biomedical PI",
+    "avoid_medical_advice": true,
+    "skepticism_required": true
+  },
+  "rate_limits": {
+    "pubmed_seconds": 0.34,
+    "clinicaltrials_seconds": 0.25,
+    "web_seconds": 1.0
+  }
+}
