@@ -33,16 +33,31 @@ Use the ID in the document URL:
 https://docs.google.com/document/d/GOOGLE_DOC_ID/edit
 ```
 
-## Append Mode
+## Tabs And Append Mode
+
+By default, each digest creates a new Google Docs tab, with the newest tab first.
+
+```json
+{
+  "outputs": {
+    "google_doc_write_mode": "new_tab",
+    "google_doc_tab_title_template": "Digest {date_range}",
+    "google_doc_new_tab_index": 0
+  }
+}
+```
+
+Set `google_doc_write_mode` to `append` if you prefer one continuous document.
 
 Set `outputs.google_doc_append_mode` in `config/config.example.yml` or your private `config/config.yml`:
 
 ```json
 {
   "outputs": {
+    "google_doc_write_mode": "append",
     "google_doc_append_mode": "top"
   }
 }
 ```
 
-Allowed values are `top` and `bottom`.
+Allowed append values are `top` and `bottom`.

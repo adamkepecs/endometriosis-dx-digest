@@ -44,31 +44,25 @@ def append_digest_to_google_doc(config: dict[str, Any], markdown: str) -> Google
         )
     try:
         token = _access_token(config)
+        write_mode = config.get("outputs", {}).get("google_doc_write_mode", "append")
+        if write_mode == "new_tab":
+            tab_title = _tab_title_from_markdown(config, markdown)
+            tab_id = _create_document_tab(config, doc_id, token, tab_title)
+            _insert_markdown(doc_id, token, markdown.rstrip() + "\n", 1, tab_id=tab_id)
+            return GoogleDocResult(
+                updated=True,
+                skipped=False,
+                message=f"Google Doc tab created: {tab_title}",
+            )
         document = _docs_request("GET", f"{DOCS_BASE}/{doc_id}", token)
         end_index = document.get("body", {}).get("content", [{}])[-1].get("endIndex", 1)
         append_mode = config.get("outputs", {}).get("google_doc_append_mode", "top")
         insertion_index = 1 if append_mode == "top" else max(1, int(end_index) - 1)
-        plain_text, links = _markdown_to_doc_text(markdown)
         if append_mode == "top":
-            plain_text = plain_text.rstrip() + "\n\n"
+            body = markdown.rstrip() + "\n\n"
         else:
-            plain_text = "\n\n" + plain_text.rstrip() + "\n"
-        requests: list[dict[str, Any]] = [
-            {"insertText": {"location": {"index": insertion_index}, "text": plain_text}}
-        ]
-        for start_offset, end_offset, url in links:
-            start = insertion_index + start_offset
-            end = insertion_index + end_offset
-            requests.append(
-                {
-                    "updateTextStyle": {
-                        "range": {"startIndex": start, "endIndex": end},
-                        "textStyle": {"link": {"url": url}},
-                        "fields": "link",
-                    }
-                }
-            )
-        _docs_request("POST", f"{DOCS_BASE}/{doc_id}:batchUpdate", token, {"requests": requests})
+            body = "\n\n" + markdown.rstrip() + "\n"
+        _insert_markdown(doc_id, token, body, insertion_index)
         return GoogleDocResult(updated=True, skipped=False, message="Google Doc updated")
     except Exception as exc:  # noqa: BLE001 - Google Docs should not block email.
         LOGGER.warning("Google Docs update skipped after error: %s", exc)
@@ -116,6 +110,76 @@ def _docs_request(method: str, url: str, token: str, body: dict[str, Any] | None
         body = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"Google Docs HTTP {exc.code}: {body[:1000]}") from exc
     return json.loads(raw) if raw else {}
+
+
+def _create_document_tab(config: dict[str, Any], doc_id: str, token: str, title: str) -> str:
+    tab_properties: dict[str, Any] = {"title": title}
+    tab_index = config.get("outputs", {}).get("google_doc_new_tab_index")
+    if tab_index is not None:
+        tab_properties["index"] = int(tab_index)
+    response = _docs_request(
+        "POST",
+        f"{DOCS_BASE}/{doc_id}:batchUpdate",
+        token,
+        {"requests": [{"addDocumentTab": {"tabProperties": tab_properties}}]},
+    )
+    replies = response.get("replies", [])
+    tab_properties = (
+        replies[0].get("addDocumentTab", {}).get("tabProperties", {}) if replies else {}
+    )
+    tab_id = tab_properties.get("tabId")
+    if not tab_id:
+        raise RuntimeError("Google Docs did not return a tab ID after addDocumentTab")
+    return str(tab_id)
+
+
+def _insert_markdown(
+    doc_id: str,
+    token: str,
+    markdown: str,
+    insertion_index: int,
+    *,
+    tab_id: str | None = None,
+) -> None:
+    plain_text, links = _markdown_to_doc_text(markdown)
+    location: dict[str, Any] = {"index": insertion_index}
+    if tab_id:
+        location["tabId"] = tab_id
+    requests: list[dict[str, Any]] = [
+        {"insertText": {"location": location, "text": plain_text}}
+    ]
+    for start_offset, end_offset, url in links:
+        text_range: dict[str, Any] = {
+            "startIndex": insertion_index + start_offset,
+            "endIndex": insertion_index + end_offset,
+        }
+        if tab_id:
+            text_range["tabId"] = tab_id
+        requests.append(
+            {
+                "updateTextStyle": {
+                    "range": text_range,
+                    "textStyle": {"link": {"url": url}},
+                    "fields": "link",
+                }
+            }
+        )
+    _docs_request("POST", f"{DOCS_BASE}/{doc_id}:batchUpdate", token, {"requests": requests})
+
+
+def _tab_title_from_markdown(config: dict[str, Any], markdown: str) -> str:
+    first_heading = next(
+        (line[2:].strip() for line in markdown.splitlines() if line.startswith("# ")),
+        "Digest",
+    )
+    match = re.search(r"(\d{4}-\d{2}-\d{2})(?:\s+to\s+(\d{4}-\d{2}-\d{2}))?", first_heading)
+    date_range = " to ".join(part for part in match.groups() if part) if match else ""
+    template = config.get("outputs", {}).get(
+        "google_doc_tab_title_template",
+        "Digest {date_range}",
+    )
+    title = str(template).format(date_range=date_range or first_heading, heading=first_heading)
+    return title.strip()[:100] or "Digest"
 
 
 def _markdown_to_doc_text(markdown: str) -> tuple[str, list[tuple[int, int, str]]]:

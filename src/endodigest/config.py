@@ -127,9 +127,19 @@ def validate_config(
     timezone = config.get("schedule", {}).get("timezone")
     if not timezone:
         errors.append("schedule.timezone is required")
+    write_mode = config.get("outputs", {}).get("google_doc_write_mode", "append")
+    if write_mode not in {"append", "new_tab"}:
+        errors.append("outputs.google_doc_write_mode must be 'append' or 'new_tab'")
     append_mode = config.get("outputs", {}).get("google_doc_append_mode")
     if append_mode not in {"top", "bottom"}:
         errors.append("outputs.google_doc_append_mode must be 'top' or 'bottom'")
+    tab_index = config.get("outputs", {}).get("google_doc_new_tab_index")
+    if tab_index is not None:
+        try:
+            if int(tab_index) < 0:
+                errors.append("outputs.google_doc_new_tab_index must be 0 or greater")
+        except (TypeError, ValueError):
+            errors.append("outputs.google_doc_new_tab_index must be an integer")
     threshold = int(config.get("inclusion", {}).get("relevance_threshold", 0))
     if threshold < 0 or threshold > 100:
         errors.append("inclusion.relevance_threshold must be 0-100")

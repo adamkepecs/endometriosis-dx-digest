@@ -103,6 +103,9 @@
     "google_doc": true,
     "email": true,
     "local_markdown": true,
+    "google_doc_write_mode": "new_tab",
+    "google_doc_tab_title_template": "Digest {date_range}",
+    "google_doc_new_tab_index": 0,
     "google_doc_append_mode": "top",
     "subject_prefix": "Endometriosis diagnostics weekly digest"
   },

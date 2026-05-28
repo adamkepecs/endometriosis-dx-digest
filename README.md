@@ -2,7 +2,7 @@
 
 Private weekly surveillance automation for endometriosis diagnostic tests.
 
-The digest collects new papers, clinical-trial updates, regulatory/commercial signals, and web/news items; classifies relevance with the OpenAI Responses API using a strict JSON schema; synthesizes a skeptical scientific digest; appends it to a Google Doc when configured; and emails HTML plus plain text through SendGrid.
+The digest collects new papers, clinical-trial updates, regulatory/commercial signals, and web/news items; classifies relevance with the OpenAI Responses API using a strict JSON schema; synthesizes a skeptical scientific digest; writes it to a Google Doc when configured; and emails HTML plus plain text through SendGrid.
 
 This is an informational surveillance tool for research use. It is not medical advice.
 
@@ -66,7 +66,7 @@ Missing optional keys log warnings and do not crash the run.
 
 ## Output
 
-Each run writes Markdown, HTML, and metadata under `data/runs/`. Successful non-dry runs update `data/seen.json` so later runs suppress duplicates by PMID, DOI, NCT ID, canonical URL, and normalized title plus source.
+Each run writes Markdown, HTML, and metadata under `data/runs/`. Google Docs output creates a new tab per digest by default; set `outputs.google_doc_write_mode` to `append` for one continuous document. Successful non-dry runs update `data/seen.json` so later runs suppress duplicates by PMID, DOI, NCT ID, canonical URL, and normalized title plus source.
 
 See:
 
