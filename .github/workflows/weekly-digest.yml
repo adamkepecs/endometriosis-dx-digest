@@ -2,11 +2,8 @@ name: Weekly Endometriosis Diagnostics Digest
 
 on:
   schedule:
-    - cron: "25 14 * * THU"
+    - cron: "0 5 * * FRI"
       timezone: "America/Chicago"
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       lookback_days:
